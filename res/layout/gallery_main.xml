@@ -65,6 +65,7 @@
             app:menu="@menu/navigation_items"
             app:itemIconTint="@drawable/item_bg"
             app:itemTextColor="@drawable/item_bg" />
+        
 
     </RelativeLayout>
 

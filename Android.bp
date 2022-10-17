@@ -2,10 +2,133 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
+android_library_import {
+    name: "walletconnectkit",
+    aars: ["libs/walletconnectkit-0.3.2.aar"],
+    sdk_version: "current",
+    min_sdk_version: "15", // optional
+}
+
+android_library_import {
+    name: "svg-aar",
+    aars: ["libs/svg-aar.aar"],
+    sdk_version: "current",
+    min_sdk_version: "15", // optional
+}
+
+java_import {
+    name: "core-1",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/core-1.1.2.jar"],
+}
+
+java_import {
+    name: "core-js",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/core-js-1.1.2.jar"],
+}
+
+java_import {
+    name: "core-jvm",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/core-jvm-1.1.2.jar"],
+}
+
+java_import {
+    name: "extensions-1",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/extensions-1.1.2-all.jar"],
+}
+
+java_import {
+    name: "extensions-js",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/extensions-js-1.1.2.jar"],
+}
+
+java_import {
+    name: "extensions-jvm",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/extensions-jvm-1.1.2.jar"],
+}
+
+java_import {
+    name: "kotlin-walletconnectkit-lib",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/kotlin-walletconnect-lib-0.9.8.jar"],
+}
+
+java_import {
+    name: "moshi",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/moshi-1.14.0.jar"],
+}
+
+java_import {
+    name: "moshi-adapters",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/moshi-adapters-1.14.0.jar"],
+}
+
+java_import {
+    name: "moshi-kotlin",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/moshi-kotlin-1.14.0.jar"],
+}
+
+java_import {
+    name: "okio",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/okio-3.2.0.jar"],
+}
+
+java_import {
+    name: "okio-jvm",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/okio-jvm-3.2.0.jar"],
+}
+
+java_import {
+    name: "okhttp-lib",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/okhttp-4.10.0.jar"],
+}
+
+java_import {
+    name: "bcprov",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/bcprov-jdk15on-1.70.jar"],
+}
+
+java_import {
+    name: "json-lib",
+    host_supported: true,
+    installable: false,
+    jars: ["libs/json-lib.jar"],
+}
+
 android_app {
     name: "Gallery2",
 
     static_libs: [
+        "kotlin-stdlib",
+        "kotlin-annotations",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
         "com.google.android.material_material",
         "androidx.annotation_annotation",
         "androidx.fragment_fragment",
@@ -16,6 +139,23 @@ android_app {
         "com.android.gallery3d.common2",
         "xmp_toolkit",
         "mp4parser",
+        "walletconnectkit",
+        "okio",
+        "okio-jvm",
+        "core-1",
+        "core-js",
+        "core-jvm",
+        "extensions-1",
+        "extensions-js",
+        "extensions-jvm",
+        "kotlin-walletconnectkit-lib",
+        "moshi",
+        "moshi-adapters",
+        "moshi-kotlin",
+        "okhttp-lib",
+        "bcprov",
+        "json-lib",
+        "svg-aar",
     ],
 
     srcs: [
