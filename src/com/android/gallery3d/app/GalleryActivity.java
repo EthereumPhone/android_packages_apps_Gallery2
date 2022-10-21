@@ -60,32 +60,6 @@ import com.android.gallery3d.data.MediaSet;
 import com.android.gallery3d.data.Path;
 import com.android.gallery3d.picasasource.PicasaSource;
 import com.android.gallery3d.util.GalleryUtils;
-import dev.pinkroom.walletconnectkit.*;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
-import okhttp3.*;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.json.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-
-import android.provider.MediaStore;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import java.net.URL;
-import android.util.Base64;
-import com.caverock.androidsvg.*;
-import android.graphics.drawable.*;
-import android.graphics.Canvas;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
-import android.os.Environment;
-import java.io.FileOutputStream;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -135,9 +109,6 @@ public final class GalleryActivity extends AbstractGalleryActivity implements On
     private static final int PERMISSION_REQUEST_STORAGE = 1;
     private Bundle mSavedInstanceState;
     private boolean mIsViewInited = false;
-    
-    WalletConnectKitConfig config;
-    SharedPreferences sharedPref;
 
 
     @Override
@@ -157,154 +128,6 @@ public final class GalleryActivity extends AbstractGalleryActivity implements On
         if (isPermissionGranted()) {
             init();
         }
-
-        config = new WalletConnectKitConfig((Context) this, "https://bridge.walletconnect.org", "ethereumphone.org", "ethOS Gallery", "Gallery-App on ethOS.", null);
-
-        WalletConnectButton walletConnectButton = (WalletConnectButton) findViewById(R.id.walletConnectButton);
-        WalletConnectKit walletConnectKit = new WalletConnectKit.Builder(config).build();
-        sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-        if (!sharedPref.getBoolean("wallet_connected", false)) {
-            walletConnectButton.start(walletConnectKit, new Function1<String, Unit>() {
-                @Override
-                public Unit invoke(String s) {
-                    walletConnectButton.setVisibility(View.INVISIBLE);
-                    initNFTGallery(s);
-                    return null;
-                }
-            });
-        } else {
-            walletConnectButton.setVisibility(View.INVISIBLE);
-        }
-        
-
-
-    }
-
-    public Bitmap drawableToBitmap (Drawable drawable) {
-        Bitmap bitmap = null;
-    
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
-                return bitmapDrawable.getBitmap();
-            }
-        }
-    
-        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
-            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-        } else {
-            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        }
-    
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
-    }
-
-    public void saveBitmapNFTToGallery(Bitmap bitmap, String title) {
-        File path = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DCIM);
-        File nftAlbum = new File(path, "NFTs");
-        if (!nftAlbum.exists()) {
-            nftAlbum.mkdir();
-        }
-
-        try (FileOutputStream out = new FileOutputStream(nftAlbum.getAbsolutePath().toString() + "/" + title + ".png")) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void initNFTGallery(String addr) {
-        System.out.println("GalleryActivity, connect Wallet: "+addr);
-        OkHttpClient client = new OkHttpClient();
-        HttpUrl.Builder urlBuilder = HttpUrl.parse("https://eth-mainnet.alchemyapi.io/nft/v2/lZSeyaiKTV9fKK3kcYYt9CxDZDobSv_Z/getNFTs/?owner="+addr).newBuilder();
-        String url = urlBuilder.build().toString();
-
-        Request request = new Request.Builder()
-                            .url(url)
-                            .build();
-
-        final Context context = this;
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-            }
-        
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response);
-                } else {
-                    String responseData = response.body().string();
-                    try {
-                        JSONObject jsonObject = new JSONObject(responseData);
-                        JSONArray jsonArray = jsonObject.getJSONArray("ownedNfts");
-                        for (int i=0; i < jsonArray.length(); i++) {
-                            String picURL = "";
-                            try {
-                                JSONObject tempJSONObj = jsonArray.getJSONObject(i);
-                                if (tempJSONObj.getJSONObject("metadata").has("image")) {
-                                    picURL = tempJSONObj.getJSONObject("metadata").getString("image");
-                                } else if (tempJSONObj.getJSONObject("metadata").has("image_url")) {
-                                    picURL = tempJSONObj.getJSONObject("metadata").getString("image_url");
-                                }
-                                
-                                if (!picURL.equals("")) {
-                                    if (picURL.contains("ipfs://")) {
-                                        picURL = "https://gateway.ipfs.io/ipfs/" + picURL.split("ipfs://")[1];
-                                    }
-                                    if (picURL.contains("base64,")) {
-                                        String encodedString = picURL.split("base64,")[1];
-                                        byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
-                                        Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
-                                        saveBitmapNFTToGallery(bitmap, tempJSONObj.getString("title"));
-                                    } else {
-                                        URL imageurl = new URL(picURL); 
-                                        InputStream inputStream = imageurl.openConnection().getInputStream();
-                                        try {
-                                            String text = new BufferedReader(
-                                                new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                                                    .lines()
-                                                    .collect(Collectors.joining("\n"));
-                                                
-                                            if (text.contains("<svg")) {
-                                                String svgStr = text;
-                                                SVG pic = SVG.getFromString(svgStr);
-                                                Drawable drawable = new PictureDrawable(pic.renderToPicture());
-                                                Bitmap bitmap = drawableToBitmap(drawable);
-                                                saveBitmapNFTToGallery(bitmap, tempJSONObj.getString("title"));
-                                                continue;
-                                            }
-                                        } catch(Exception e){}
-                                        Bitmap bitmap = BitmapFactory.decodeStream(imageurl.openConnection().getInputStream());
-                                        saveBitmapNFTToGallery(bitmap, tempJSONObj.getString("title"));
-                                    }
-                                    runOnUiThread (new Thread(new Runnable() {  
-                                        public void run() {
-                                            Toast.makeText(context, "NFTs will show after next boot.", Toast.LENGTH_LONG).show();
-                                         }
-                                    }));
-                                }
-                            }catch(Exception e) {
-                                e.printStackTrace();
-                                System.out.println("GalleryActivity, Corresponding NFT URL: "+picURL);
-                            }
-                        }
-                    } catch(Exception e) {
-                        e.printStackTrace();
-                    }
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putBoolean("wallet_connected", true);
-                    editor.apply();
-                }
-            }
-        });
-
     }
 
     private void init() {
